@@ -36,15 +36,19 @@ export interface BannerWithContentPanelSettings extends Settings {
         offset: point;
         margin: number;
         slant: number;
+        wiggleRoom?: number;
     };
 }
 export declare function createBannerWithBackground(title: string, settings?: Partial<BannerWithContentPanelSettings>): Promise<canvas.Canvas>;
 export declare function drawContentBackground(canvas: Canvas, settings: BannerWithContentPanelSettings): void;
+export interface PreviewImageSettings {
+    position: point;
+    scale: number;
+    angle: number;
+    randomPosition?: number;
+    randomAngle?: number;
+}
 export declare function generatePreviewImage(title: string, targetPath: string, contentPath?: string, tags?: {
     label: string;
     colour: string;
-}[], contentSettings?: Partial<{
-    sizeFactor: number;
-    angleRadians: number;
-    wiggleRoom: number;
-}>): Promise<void>;
+}[], previewImageSettings?: Partial<PreviewImageSettings>): Promise<void>;

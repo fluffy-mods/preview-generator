@@ -188,10 +188,12 @@ export interface BannerWithContentPanelSettings extends Settings {
         offset: point;
         margin: number;
         slant: number;
+
+        wiggleRoom?: number;
     };
 }
 
-const defaultBannerWithBackgroundSettings: BannerWithContentPanelSettings =
+const defaultBannerWithContentPanelSettings: BannerWithContentPanelSettings =
     merge({}, defaultBannerSettings, {
         content: {
             size: {
@@ -254,7 +256,11 @@ export async function createBannerWithBackground(
     title: string,
     settings?: Partial<BannerWithContentPanelSettings>
 ): Promise<canvas.Canvas> {
-    const _settings = merge({}, defaultBannerWithBackgroundSettings, settings);
+    const _settings = merge(
+        {},
+        defaultBannerWithContentPanelSettings,
+        settings
+    );
     const canvas = new Canvas(
         _settings.canvas.size.width,
         _settings.canvas.size.height
@@ -286,25 +292,38 @@ export function drawContentBackground(
     ctx.fill();
 }
 
+export interface PreviewImageSettings {
+    position: point;
+    scale: number;
+    angle: number;
+
+    randomPosition?: number;
+    randomAngle?: number;
+}
+
+const DefaultPreviewImageSettings: PreviewImageSettings = {
+    position: {
+        x: 0.5,
+        y: 0.5,
+    },
+    scale: 0.9,
+    angle: 0,
+
+    randomAngle: 12,
+    randomPosition: 0.05,
+};
+
 export async function generatePreviewImage(
     title: string,
     targetPath: string,
     contentPath?: string,
     tags: { label: string; colour: string }[] = [],
-    contentSettings?: Partial<{
-        sizeFactor: number;
-        angleRadians: number;
-        wiggleRoom: number;
-    }>
+    previewImageSettings?: Partial<PreviewImageSettings>
 ) {
-    const _contentSettings = merge(
+    const _previewImageSettings = merge(
         {},
-        {
-            sizeFactor: SIZE_FACTOR,
-            angleRadians: ANGLE_RADIANS,
-            wiggleRoom: WIGGLE_ROOM,
-        },
-        contentSettings
+        DefaultPreviewImageSettings,
+        previewImageSettings
     );
     const settings = defaultBannerSettings;
 
@@ -316,7 +335,7 @@ export async function generatePreviewImage(
     drawBackground(cnvs, settings);
     drawBannerBackground(cnvs, settings);
     if (contentPath) {
-        await drawImage(cnvs, contentPath, _contentSettings);
+        await drawImage(cnvs, contentPath, _previewImageSettings);
     }
     drawBannerForeground(cnvs, settings);
     drawBannerTitle(title, cnvs, settings);
@@ -328,14 +347,14 @@ export async function generatePreviewImage(
 async function drawImage(
     cnvs: Canvas,
     sourcePath: string,
-    settings: { sizeFactor: number; wiggleRoom: number; angleRadians: number }
+    settings: PreviewImageSettings
 ) {
     // const imageData = await readFile(image, "binary");
     const imageCanvas = await canvas.loadImage(sourcePath);
 
     const availableSize = {
-        width: cnvs.width * settings.sizeFactor,
-        height: cnvs.height * settings.sizeFactor,
+        width: cnvs.width * settings.scale,
+        height: cnvs.height * settings.scale,
     };
     const ratio = Math.min(
         availableSize.width / imageCanvas.width,
@@ -345,19 +364,31 @@ async function drawImage(
         width: imageCanvas.width * ratio,
         height: imageCanvas.height * ratio,
     };
-    const randomOffset = {
-        x: (Math.random() * 2 - 1) * settings.wiggleRoom * targetSize.width,
-        y: (Math.random() * 2 - 1) * settings.wiggleRoom * targetSize.height,
+
+    let targetAngle = settings.angle * (Math.PI / 180);
+    if (settings.randomAngle) {
+        targetAngle +=
+            (Math.random() * 2 - 1) * settings.randomAngle * (Math.PI / 180);
+    }
+
+    let targetPosition = {
+        x: cnvs.width * settings.position.x,
+        y: cnvs.height * settings.position.y,
     };
-    const angle =
-        (Math.random() * 2 - 1) * settings.angleRadians * (Math.PI / 180);
+    if (settings.randomPosition) {
+        targetPosition.x +=
+            (Math.random() * 2 - 1) *
+            settings.randomPosition *
+            targetSize.width;
+        targetPosition.y +=
+            (Math.random() * 2 - 1) *
+            settings.randomPosition *
+            targetSize.height;
+    }
 
     const ctx = cnvs.getContext("2d");
-    ctx.translate(
-        cnvs.width / 2 + randomOffset.x,
-        cnvs.height / 2 + randomOffset.y
-    );
-    ctx.rotate(angle);
+    ctx.translate(targetPosition.x, targetPosition.y);
+    ctx.rotate(targetAngle);
     ctx.drawImage(
         imageCanvas,
         -targetSize.width / 2,
@@ -365,16 +396,9 @@ async function drawImage(
         targetSize.width,
         targetSize.height
     );
-    ctx.rotate(-angle);
-    ctx.translate(
-        -cnvs.width / 2 - randomOffset.x,
-        -cnvs.height / 2 - randomOffset.y
-    );
+    ctx.rotate(-targetAngle);
+    ctx.translate(-targetPosition.x, -targetPosition.y);
 }
-
-const SIZE_FACTOR = 0.9;
-const ANGLE_RADIANS = 12;
-const WIGGLE_ROOM = 0.05;
 
 // fill the canvas with the background colour
 function drawBackground(canvas: Canvas, settings: Settings) {
