@@ -1,12 +1,10 @@
 {
-    "name": "preview-generator",
+    "name": "@fluffy-mods/preview-generator",
     "version": "1.0.0",
     "description": "",
     "main": "dist/index.js",
-    "scripts": {
-        "test": "mocha"
-    },
-    "author": "",
+    "scripts": {},
+    "author": "Karel Kroeze <karel.kroeze@gmail.com>",
     "license": "MIT",
     "dependencies": {
         "canvas": "^2.8.0",
@@ -18,5 +16,13 @@
         "prettier": "^2.3.2",
         "typescript": "^4.3.5"
     },
-    "type": "module"
+    "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/fluffy-mods/preview-generator.git"
+    },
+    "bugs": {
+        "url": "https://github.com/fluffy-mods/preview-generator/issues"
+    },
+    "homepage": "https://github.com/fluffy-mods/preview-generator#readme"
 }
