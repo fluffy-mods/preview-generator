@@ -1,0 +1,22 @@
+{
+    "name": "preview-generator",
+    "version": "1.0.0",
+    "description": "",
+    "main": "dist/index.js",
+    "scripts": {
+        "test": "mocha"
+    },
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "canvas": "^2.8.0",
+        "lodash": "^4.17.21"
+    },
+    "devDependencies": {
+        "@types/lodash": "^4.14.171",
+        "@types/node": "^16.4.3",
+        "prettier": "^2.3.2",
+        "typescript": "^4.3.5"
+    },
+    "type": "module"
+}
